@@ -17,6 +17,9 @@ app.use(bodyParser.json());
 let userDb = [];
 let itemDb = [];
 
+// conffataa ohjelma herokun varalle!!!
+app.set('port', (process.env.PORT || 80));
+
 passport.use(new BasicStrategy(
     (username, password, done) => {
         console.log('Basic strategy params, username ' + username + " , password " + password);
