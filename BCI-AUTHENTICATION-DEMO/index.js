@@ -20,12 +20,13 @@ let itemDb = [];
 // conffataa ohjelma herokun varalle!!!
 app.set('port', (process.env.PORT || 80));
 
+
 passport.use(new BasicStrategy(
     (username, password, done) => {
         console.log('Basic strategy params, username ' + username + " , password " + password);
 
-        //credintial check
-        //search userDb for matchin user and pasworrd
+        //credential check
+        //search userDb for matching user and pasworrd
 
         const searchResult = userDb.find(user => {
             if(user.username === username){
@@ -46,15 +47,15 @@ passport.use(new BasicStrategy(
 ));
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Tämä on viesti tulevaisuudesta!')
 })
 
 app.get('/protectedResource', passport.authenticate('basic', { session: false}),(req, res) =>{
-    res.send("onnistui jeee")
+    res.send("Tämä ei ole sinun kotisi!")
 
 })
 
-//this route will recive data structure
+//this route will receive data structure
 app.post('/signup', (req, res) => {
 
     const salt = bcrypt.genSaltSync(6)
@@ -80,24 +81,47 @@ app.post('/items', passport.authenticate('basic', { session: false}),(req, res) 
 
     const newItem = {
         id: uuidv4(),
-         title: req.body.title,
-         Description: req.body.description,
-         Category: req.body.category,
-         Address: req.body.Address,
-         PostalCode: req.body.postalCode,
-         Asking_Price: req.body.Asking_Price,
-         Date_of_Posting: formatted,
-         Delivery_Type: req.body.Delivery_Type,
-         Sellers_Info: req.body.Sellers_Info,
+        title: req.body.title,
+        Description: req.body.description,
+        Category: req.body.category,
+        Address: req.body.Address,
+        PostalCode: req.body.postalCode,
+        Asking_Price: req.body.Asking_Price,
+        Date_of_Posting: formatted,
+        Delivery_Type: req.body.Delivery_Type,
+        Sellers_Info: req.body.Sellers_Info,
     }
     itemDb.push(newItem);
     res.sendStatus(201);
     res.send("uusi itemi luotu")
 })
 
+app.delete('/items/:id', passport.authenticate('basic', { session: false}), (req, res) => {
+	var index = itemDb.indexOf(req.id);
+
+	if (index === undefined) {
+		res.sendStatus(404);
+	} else {
+		itemDb.splice(index, 1);
+		res.send("JEE POISTETTU!");
+	}
+
+})
 
 
+app.put('/items/', passport.authenticate('basic', { session: false}), (req, res) => {
+    var index = itemDb.findIndex((obj => obj.id == req.body.id));
 
+    if (index === undefined) {
+        res.send("toimint")
+        //res.sendStatus(404);
+    } else {
+        itemDb[index].title = req.body.title;
+
+        res.send(req.body.id + index);
+    }
+
+})
 
 
 app.get('/items', (req, res) => {
@@ -114,11 +138,38 @@ app.get('/items/:id', (req, res) => {
     }
 })
 
-
-
-
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+app.get('/items/:category', (req, res) => {
+    const item = itemDb.find(d => d.category === req.params.category);
+    if (item === undefined) {
+        res.sendStatus(404);
+    } else {
+        res.json(item);
+    }
 })
 
+app.get('/items/:location', (req, res) => {
+    const item = itemDb.find(d => d.PostalCode === req.params.location);
+    if (item === undefined) {
+        res.sendStatus(404);
+    } else {
+        res.json(item);
+    }
+})
+
+app.get('/items/:Date_of_Posting', (req, res) => {
+    const item = itemDb.find(d => d.Date_of_Posting === req.params.Date_of_Posting);
+    if (item === undefined) {
+        res.sendStatus(404);
+    } else {
+        res.json(item);
+    }
+})
+
+// app.listen(port, () => {
+//   console.log(`Example app listening at http://localhost:${port}`)
+// })
+
+
+app.listen(app.get('port'), function() {
+  console.log('APP is running on port', app.get('port'));
+});
